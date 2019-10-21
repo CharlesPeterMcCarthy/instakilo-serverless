@@ -1,20 +1,47 @@
 service:
   name: instagram-serverless
-#app: your-app-name
-#tenant: your-tenant-name
 
-# Add the serverless-webpack plugin
 plugins:
   - serverless-webpack
 
 provider:
   name: aws
+  region: eu-west-1
+  stage: dev
   runtime: nodejs10.x
+  tags:
+    project: instagram
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - "dynamodb:Query"
+        - "dynamodb:Scan"
+        - "dynamodb:PutItem"
+        - "dynamodb:GetItem"
+        - "dynamodb:DeleteItem"
+        - "dynamodb:UpdateItem"
+        - "dynamodb:Scan"
+      Resource: "*"
 
 functions:
-  hello:
-    handler: handler.hello
+  signUp:
+    handler: src/functions/signup/signup.signUpHandler
     events:
       - http:
-          method: get
-          path: hello
+          method: post
+          path: signup
+
+resources:
+  Resources:
+    UserTable:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: "_id"
+            AttributeType: "S"
+        KeySchema:
+          - AttributeName: "_id"
+            KeyType: "HASH"
+        BillingMode: PAY_PER_REQUEST
+        TableName: INS-USERS
