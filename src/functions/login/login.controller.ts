@@ -1,18 +1,18 @@
 import * as AWS from 'aws-sdk';
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client';
-import { ConfirmSignUpPayload } from './confirm-signup.interfaces';
+import { LoginPayload } from './login.interfaces';
 
-export class ConfirmSignUpController {
+export class LoginController {
 
 	private dynamo: DocumentClient = new AWS.DynamoDB.DocumentClient();
 
-	public confirmSignUp = async (event: ConfirmSignUpPayload) => {
+	public login = async (event: LoginPayload) => {
 		try {
 			await this.updateUser(event.request.userAttributes.sub);
 
 			return event;
 		} catch (err) {
-			return 'Failed to confirm email';
+			return 'Unable to update login times';
 		}
 	}
 
@@ -22,12 +22,11 @@ export class ConfirmSignUpController {
 			Key: {
 				_id: userId
 			},
-			UpdateExpression: 'SET confirmed = :confirmed, times.confirmed = :now',
+			UpdateExpression: 'set times.lastLogin = :now',
 			ExpressionAttributeValues: {
-				':confirmed': true,
 				':now': new Date().toISOString()
 			},
-			ReturnValues: 'UPDATED_NEW'
+			ReturnValues: 'ALL_NEW'
 		};
 
 		return this.dynamo.update(params).promise();

@@ -7,7 +7,7 @@ export class SignUpController {
 	private dynamo: DocumentClient = new AWS.DynamoDB.DocumentClient();
 
 	public signUpChecks = async (event: SignUpChecksPayload) => {
-		return event; // Temporary
+		return event; // Temporary - Replace with username & email checks
 	}
 
 	public signUp = async (event: SignUpPayload) => {
