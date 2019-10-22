@@ -1,16 +1,4 @@
-interface CognitoPayload {
-	version: string | number,
-	region: string, // eu-west-1
-	userPoolId: string,
-	userName: string,
-	callerContext: {
-		awsSdkVersion: string,
-		clientId: string
-	},
-	triggerSource: string,
-	request: any,
-	response: any
-}
+import CognitoPayload from "../../interfaces/cognito-trigger-payload";
 
 export interface SignUpChecksPayload extends CognitoPayload { // trigger = 'PreSignUp_SignUp'
 	request: {

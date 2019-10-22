@@ -29,6 +29,8 @@ functions:
     handler: src/functions/signup/signup.signUpChecksHandler
   signUpHandler:
     handler: src/functions/signup/signup.signUpHandler
+  confirmSignUpHandler:
+    handler: src/functions/confirm-signup/confirm-signup.confirmSignUpHandler
 
 resources:
   Resources:

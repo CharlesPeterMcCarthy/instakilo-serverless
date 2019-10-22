@@ -14,6 +14,7 @@ export class SignUpController {
 		try {
 			await this.saveUser(event);
 			event = this.setCustomMessage(event);
+
 			return event;
 		} catch (err) {
 			return 'Unable to save user details';
@@ -23,6 +24,7 @@ export class SignUpController {
 	private saveUser = (event: SignUpPayload) => {
 		const { sub, email, email_verified } = event.request.userAttributes;
 		const username = event.userName;
+		const confirmed = email_verified === 'true'; // email_verified is sent as a string from Cognito
 		const now: string = new Date().toISOString();
 
 		const params = {
@@ -31,7 +33,7 @@ export class SignUpController {
 				_id: sub,
 				username,
 				email,
-				confirmed: email_verified,
+				confirmed,
 				times: {
 					signedUpAt: now
 				}
