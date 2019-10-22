@@ -1,44 +1,51 @@
 import * as AWS from 'aws-sdk';
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client';
-import { SignupPayload } from './signup.interfaces';
-import Response from '../../responses/api.responses';
+import { SignUpPayload, SignUpChecksPayload } from './signup.interfaces';
 
 export class SignUpController {
 
 	private dynamo: DocumentClient = new AWS.DynamoDB.DocumentClient();
 
-	public signUp = async (event) => {
-		const data: SignupPayload = JSON.parse(event.body);
+	public signUpChecks = async (event: SignUpChecksPayload) => {
+		return event; // Temporary
+	}
 
+	public signUp = async (event: SignUpPayload) => {
 		try {
-			await this.saveUserDetails(data);
-			return Response.success({ success: true });
+			await this.saveUser(event);
+			event = this.setCustomMessage(event);
+			return event;
 		} catch (err) {
-			return Response.error({ success: false, error: 'Unable to save user details' })
+			return 'Unable to save user details';
 		}
 	}
 
-	private saveUserDetails = (data) => {
-		const { auth, email, username }: SignupPayload = data;
-		const userId: string = auth.userSub;
-		const confirmed: boolean = auth.userConfirmed;
+	private saveUser = (event: SignUpPayload) => {
+		const { sub, email, email_verified } = event.request.userAttributes;
+		const username = event.userName;
 		const now: string = new Date().toISOString();
 
 		const params = {
 			TableName: 'INS-USERS',
 			Item: {
-				_id: userId,
-				email,
+				_id: sub,
 				username,
-				confirmed,
+				email,
+				confirmed: email_verified,
 				times: {
-					signedUpAt: now,
-					confirmedAt: confirmed ? now : undefined
+					signedUpAt: now
 				}
 			}
 		};
 
 		return this.dynamo.put(params).promise();
+	}
+
+	private setCustomMessage = (event: SignUpPayload): SignUpPayload => {
+		event.response.emailSubject = 'Welcome to InstaKilo';
+		event.response.emailMessage =
+			`Welcome to InstaKilo!\nThanks for signing up.\n\nUse this code to confirm your account: ${event.request.codeParameter}`
+		return event;
 	}
 
 }

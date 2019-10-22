@@ -2,13 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="221c48d8-7ea0-4c45-a636-f73a9fa5d576" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/functions/signup/signup.controller.ts" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/functions/signup/signup.interfaces.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/serverless.yml" beforeDir="false" afterPath="$PROJECT_DIR$/serverless.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/functions/signup/signup.controller.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/functions/signup/signup.controller.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/functions/signup/signup.interfaces.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/functions/signup/signup.interfaces.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/functions/signup/signup.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/functions/signup/signup.ts" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -25,7 +23,7 @@
   </component>
   <component name="PropertiesComponent">
     <property name="WebServerToolWindowFactoryState" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/../../Project300/serverless" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.tslint" value="project" />
     <property name="node.js.selected.package.tslint" value="(autodetect)" />
@@ -65,7 +63,7 @@
       <option name="presentableId" value="Default" />
       <updated>1571440445233</updated>
       <workItem from="1571440446515" duration="8787000" />
-      <workItem from="1571672498497" duration="5673000" />
+      <workItem from="1571672498497" duration="19255000" />
     </task>
     <servers />
   </component>

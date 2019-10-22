@@ -25,12 +25,10 @@ provider:
       Resource: "*"
 
 functions:
-  signUp:
+  signUpChecksHandler:
+    handler: src/functions/signup/signup.signUpChecksHandler
+  signUpHandler:
     handler: src/functions/signup/signup.signUpHandler
-    events:
-      - http:
-          method: post
-          path: signup
 
 resources:
   Resources:
