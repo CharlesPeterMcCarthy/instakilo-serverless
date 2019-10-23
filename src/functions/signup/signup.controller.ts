@@ -46,7 +46,12 @@ export class SignUpController {
 	private setCustomMessage = (event: SignUpPayload): SignUpPayload => {
 		event.response.emailSubject = 'Welcome to InstaKilo';
 		event.response.emailMessage =
-			`Welcome to InstaKilo!\nThanks for signing up.\n\nUse this code to confirm your account: ${event.request.codeParameter}`
+			`Welcome to InstaKilo!<br><br>
+			Thanks for signing up.<br><br>
+			Use this link to confirm your account: <a href="http://localhost:4200/confirm/${event.request.codeParameter}">Confirm</a><br>
+			Or use the confirmation code: ${event.request.codeParameter}<br><br>
+			- InstaKilo`;
+
 		return event;
 	}
 
