@@ -48,7 +48,8 @@ export class SignUpController {
 		event.response.emailMessage =
 			`Welcome to InstaKilo!<br><br>
 			Thanks for signing up.<br><br>
-			Use this link to confirm your account: <a href="http://localhost:4200/confirm/${event.request.codeParameter}">Confirm</a><br>
+			Use this link to confirm your account: 
+			<a href="http://localhost:4200/confirm/${event.request.codeParameter}">Confirm</a><br>
 			Or use the confirmation code: ${event.request.codeParameter}<br><br>
 			- InstaKilo`;
 
