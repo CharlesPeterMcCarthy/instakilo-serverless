@@ -7,8 +7,12 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "dependencies": {
+    "@instakilo/common": "^1.0.0",
     "aws-sdk": "^2.553.0",
-    "source-map-support": "^0.5.10"
+    "jsonwebtoken": "^8.5.1",
+    "jwk-to-pem": "^2.0.1",
+    "source-map-support": "^0.5.10",
+    "uuid": "^3.3.3"
   },
   "devDependencies": {
     "@types/aws-lambda": "^8.10.17",
