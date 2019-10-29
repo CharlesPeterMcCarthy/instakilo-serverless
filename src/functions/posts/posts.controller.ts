@@ -5,7 +5,7 @@ import {Post, UserBrief} from '@instakilo/common';
 import uuidv4 from 'uuid/v4';
 import Auth from '../../auth/verify';
 import UserUtils from '../../user/user';
-import {PostUpdateInfo} from './posts.interfaces';
+import { PostUpdateInfo } from './posts.interfaces';
 
 export class PostsController {
 

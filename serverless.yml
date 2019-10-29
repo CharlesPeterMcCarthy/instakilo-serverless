@@ -86,3 +86,25 @@ resources:
             KeyType: "HASH"
         BillingMode: PAY_PER_REQUEST
         TableName: INS-POSTS
+    HashTagTable:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: "_tag"
+            AttributeType: "S"
+        KeySchema:
+          - AttributeName: "_tag"
+            KeyType: "HASH"
+        BillingMode: PAY_PER_REQUEST
+        TableName: INS-HASHTAGS
+    LocationTable:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: "_placeId"
+            AttributeType: "S"
+        KeySchema:
+          - AttributeName: "_placeId"
+            KeyType: "HASH"
+        BillingMode: PAY_PER_REQUEST
+        TableName: INS-LOCATIONS
