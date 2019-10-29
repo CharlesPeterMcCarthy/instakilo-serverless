@@ -67,6 +67,26 @@ export class PostsController {
         }
     }
 
+    public queryPublic = async (event) => {
+        const data = JSON.parse(event.body);
+        const { limit, lastKey, token }: { limit: number, lastKey: string, token: string } = data;
+
+        const auth = await Auth.verify(token);
+        if (auth.error) return Response.error({ success: false, error: 'Authentication Invalid' });
+
+        try {
+            const res = await this.getPublicPosts(limit, lastKey);
+            const posts = res.Items;
+            const newLastKey = res.LastEvaluatedKey && res.LastEvaluatedKey._id;
+            const moreAvailable = !!res.LastEvaluatedKey;
+
+            return Response.success({ success: true, posts, lastKey: newLastKey, moreAvailable });
+        } catch (err) {
+            console.error(err);
+            return Response.error({ success: false, error: 'Unable to retrieve posts' });
+        }
+    }
+
     private savePost = (post: Post, user: UserBrief) => {
         const params = {
             TableName: 'INS-POSTS',
@@ -126,6 +146,16 @@ export class PostsController {
         };
 
         return this.dynamo.update(params).promise();
+    }
+
+    private getPublicPosts = async (limit: number, lastKey: string) => {
+        const params = {
+            TableName: 'INS-POSTS',
+            Limit: limit,
+            ExclusiveStartKey: lastKey ? {_id: lastKey} : undefined
+        };
+
+        return await UserUtils.dynamo.scan(params).promise();
     }
 
 }

@@ -61,6 +61,13 @@ functions:
           path: /delete-post
           method: post
           cors: true
+  queryPublicPostsHandler:
+    handler: src/functions/posts/posts.queryPublicPostsHandler
+    events:
+      - http:
+          path: /get-public-posts
+          method: post
+          cors: true
 
 resources:
   Resources:
