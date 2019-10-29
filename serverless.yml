@@ -40,6 +40,7 @@ functions:
           path: /store-login-tokens
           method: post
           cors: true
+
   createPostHandler:
     handler: src/functions/posts/posts.createPostHandler
     events:
@@ -73,6 +74,14 @@ functions:
     events:
       - http:
           path: /get-own-posts
+          method: post
+          cors: true
+
+  addCommentHandler:
+    handler: src/functions/posts/comments/comments.addCommentHandler
+    events:
+      - http:
+          path: /add-comment
           method: post
           cors: true
 
