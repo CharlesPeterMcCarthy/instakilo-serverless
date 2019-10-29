@@ -5,6 +5,7 @@ import {Post, UserBrief} from '@instakilo/common';
 import uuidv4 from 'uuid/v4';
 import Auth from '../../auth/verify';
 import UserUtils from '../../user/user';
+import {PostUpdateInfo} from './posts.interfaces';
 
 export class PostsController {
 
@@ -12,8 +13,7 @@ export class PostsController {
 
     public create = async (event) => {
         const data = JSON.parse(event.body);
-        const post: Post = data.post;
-        const token = data.token;
+        const { post, token }: { post: Post, token: string } = data;
 
         const auth = await Auth.verify(token);
         if (auth.error) return Response.error({ success: false, error: 'Authentication Invalid' });
@@ -33,8 +33,7 @@ export class PostsController {
 
     public delete = async (event) => {
         const data = JSON.parse(event.body);
-        const postId: string = data.postId;
-        const token = data.token;
+        const { postId, token }: { postId: string, token: string } = data;
 
         const auth = await Auth.verify(token);
         if (auth.error) return Response.error({ success: false, error: 'Authentication Invalid' });
@@ -47,6 +46,24 @@ export class PostsController {
             console.error(err);
             if (err.code === 'ConditionalCheckFailedException') return Response.error({ success: false, error: 'User is not authorised to delete this post' });
             return Response.error({ success: false, error: 'Unable to delete post' });
+        }
+    }
+
+    public update = async (event) => {
+        const data = JSON.parse(event.body);
+        const { postInfo, token }: { postInfo: PostUpdateInfo, token: string } = data;
+
+        const auth = await Auth.verify(token);
+        if (auth.error) return Response.error({ success: false, error: 'Authentication Invalid' });
+
+        try {
+            await this.updatePost(postInfo, auth.sub);
+
+            return Response.success({ success: true });
+        } catch (err) {
+            console.error(err);
+            if (err.code === 'ConditionalCheckFailedException') return Response.error({ success: false, error: 'User is not authorised to update this post' });
+            return Response.error({ success: false, error: 'Unable to update post' });
         }
     }
 
@@ -86,6 +103,29 @@ export class PostsController {
         }
 
         return this.dynamo.delete(params).promise();
+    }
+
+    private updatePost = (postInfo: PostUpdateInfo, userId: string) => {
+        const params = {
+            TableName: 'INS-POSTS',
+            Key: {
+                _id: postInfo.postId
+            },
+            UpdateExpression: 'SET description = :desc, hashTags = :ht, times.updatedAt = :now',
+            ConditionExpression: 'createdBy.#id = :userId',
+            ExpressionAttributeValues: {
+                ':desc': postInfo.description,
+                ':ht': postInfo.hashTags,
+                ':now': new Date().toISOString(),
+                ':userId': userId
+            },
+            ExpressionAttributeNames: {
+                '#id': '_id'
+            },
+            ReturnValues: 'UPDATED_NEW'
+        };
+
+        return this.dynamo.update(params).promise();
     }
 
 }

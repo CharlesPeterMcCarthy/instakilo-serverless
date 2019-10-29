@@ -6,34 +6,24 @@ export default class UserUtils {
 
     static dynamo: DocumentClient = new AWS.DynamoDB.DocumentClient();
 
-    static getDetails = async (userId: string): Promise<User> => {
+    static getDetails = async (userId: string): Promise<User> => UserUtils.queryUser(userId, false);
 
-        const params = {
-            TableName: 'INS-USERS',
-            Key: {
-                _id: userId
-            }
-        };
+    static getBriefDetails = async (userId: string): Promise<UserBrief> => UserUtils.queryUser(userId, true);
 
-        const res = await UserUtils.dynamo.get(params).promise();
-        return res.Item as User;
-    }
-
-    static getBriefDetails = async (userId: string): Promise<UserBrief> => {
-
+    static queryUser = async (userId: string, brief: boolean): Promise<User> => {
         const params = {
             TableName: 'INS-USERS',
             Key: {
                 _id: userId
             },
-            ProjectionExpression: '#id, username, avatar',
-            ExpressionAttributeNames: {
+            ProjectionExpression: brief ? '#id, username, avatar' : undefined,
+            ExpressionAttributeNames: brief ? {
                 '#id': '_id'
-            }
+            } : undefined
         };
 
         const res = await UserUtils.dynamo.get(params).promise();
-        return res.Item as UserBrief;
+        return res.Item as User;
     }
 
 }
