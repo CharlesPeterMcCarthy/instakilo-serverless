@@ -40,6 +40,13 @@ functions:
           path: /store-login-tokens
           method: post
           cors: true
+  createPostHandler:
+    handler: src/functions/posts/posts.createPostHandler
+    events:
+      - http:
+          path: /create-post
+          method: post
+          cors: true
 
 resources:
   Resources:
@@ -54,3 +61,14 @@ resources:
             KeyType: "HASH"
         BillingMode: PAY_PER_REQUEST
         TableName: INS-USERS
+    PostTable:
+      Type: "AWS::DynamoDB::Table"
+      Properties:
+        AttributeDefinitions:
+          - AttributeName: "_id"
+            AttributeType: "S"
+        KeySchema:
+          - AttributeName: "_id"
+            KeyType: "HASH"
+        BillingMode: PAY_PER_REQUEST
+        TableName: INS-POSTS
