@@ -32,7 +32,7 @@ export default class UserUtils {
             }
         };
 
-        const res = await User.dynamo.get(params).promise();
+        const res = await UserUtils.dynamo.get(params).promise();
         return res.Item as UserBrief;
     }
 

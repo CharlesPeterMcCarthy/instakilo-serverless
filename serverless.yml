@@ -47,6 +47,13 @@ functions:
           path: /create-post
           method: post
           cors: true
+  deletePostHandler:
+    handler: src/functions/posts/posts.deletePostHandler
+    events:
+      - http:
+          path: /delete-post
+          method: post
+          cors: true
 
 resources:
   Resources:

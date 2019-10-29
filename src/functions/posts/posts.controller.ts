@@ -31,6 +31,25 @@ export class PostsController {
         }
     }
 
+    public delete = async (event) => {
+        const data = JSON.parse(event.body);
+        const postId: string = data.postId;
+        const token = data.token;
+
+        const auth = await Auth.verify(token);
+        if (auth.error) return Response.error({ success: false, error: 'Authentication Invalid' });
+
+        try {
+            await this.deletePost(postId, auth.sub);
+
+            return Response.success({ success: true });
+        } catch (err) {
+            console.error(err);
+            if (err.code === 'ConditionalCheckFailedException') return Response.error({ success: false, error: 'User is not authorised to delete this post' });
+            return Response.error({ success: false, error: 'Unable to delete post' });
+        }
+    }
+
     private savePost = (post: Post, user: UserBrief) => {
         const params = {
             TableName: 'INS-POSTS',
@@ -49,6 +68,24 @@ export class PostsController {
                 createdAt: new Date().toISOString()
             }
         }
+    }
+
+    private deletePost = (postId, userId) => {
+        const params = {
+            TableName: 'INS-POSTS',
+            Key: {
+                _id: postId
+            },
+            ConditionExpression: 'createdBy.#id = :userId',
+            ExpressionAttributeValues: {
+                ':userId': userId
+            },
+            ExpressionAttributeNames: {
+                '#id': '_id'
+            }
+        }
+
+        return this.dynamo.delete(params).promise();
     }
 
 }
