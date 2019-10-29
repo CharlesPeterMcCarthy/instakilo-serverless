@@ -10,6 +10,19 @@ export default class UserUtils {
 
     static getBriefDetails = async (userId: string): Promise<UserBrief> => UserUtils.queryUser(userId, true);
 
+    static getPostIds = async (userId: string): Promise<string[]> => {
+        const params = {
+            TableName: 'INS-USERS',
+            Key: {
+                _id: userId
+            },
+            ProjectionExpression: 'posts'
+        };
+
+        const res = await UserUtils.dynamo.get(params).promise();
+        return res.Item && res.Item.posts;
+    }
+
     static queryUser = async (userId: string, brief: boolean): Promise<User> => {
         const params = {
             TableName: 'INS-USERS',
@@ -25,5 +38,7 @@ export default class UserUtils {
         const res = await UserUtils.dynamo.get(params).promise();
         return res.Item as User;
     }
+
+
 
 }

@@ -87,6 +87,24 @@ export class PostsController {
         }
     }
 
+    public queryOwn = async (event) => {
+        const data = JSON.parse(event.body);
+        const token: string = data.token;
+
+        const auth = await Auth.verify(token);
+        if (auth.error) return Response.error({ success: false, error: 'Authentication Invalid' });
+
+        try {
+            const postIds: string[] = await UserUtils.getPostIds(auth.sub);
+            const res = await this.getPosts(postIds);
+
+            return Response.success({ success: true, res });
+        } catch (err) {
+            console.error(err);
+            return Response.error({ success: false, error: 'Unable to retrieve posts' });
+        }
+    }
+
     private savePost = (post: Post, user: UserBrief) => {
         const params = {
             TableName: 'INS-POSTS',
@@ -153,6 +171,27 @@ export class PostsController {
             TableName: 'INS-POSTS',
             Limit: limit,
             ExclusiveStartKey: lastKey ? {_id: lastKey} : undefined
+        };
+
+        return await UserUtils.dynamo.scan(params).promise();
+    }
+
+    private getPosts = async (postIds: string[]) => {
+        const keysObj = {};
+        let index = 0;
+        postIds.forEach((id: string) => {
+            index++;
+            const titleKey = ':postIdVal' + index;
+            keysObj[titleKey.toString()] = id;
+        });
+
+        const params = {
+            TableName: 'INS-POSTS',
+            FilterExpression: '#id IN (' + Object.keys(keysObj).toString() + ')',
+            ExpressionAttributeNames: {
+                '#id': '_id'
+            },
+            ExpressionAttributeValues: keysObj
         };
 
         return await UserUtils.dynamo.scan(params).promise();

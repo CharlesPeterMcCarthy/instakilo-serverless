@@ -68,6 +68,13 @@ functions:
           path: /get-public-posts
           method: post
           cors: true
+  queryOwnPostsHandler:
+    handler: src/functions/posts/posts.queryOwnPostsHandler
+    events:
+      - http:
+          path: /get-own-posts
+          method: post
+          cors: true
 
 resources:
   Resources:
