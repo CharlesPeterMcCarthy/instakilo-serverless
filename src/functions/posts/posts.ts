@@ -7,3 +7,4 @@ export const deletePostHandler = controller.delete;
 export const updatePostHandler = controller.update;
 export const queryPublicPostsHandler = controller.queryPublic;
 export const queryOwnPostsHandler = controller.queryOwn;
+export const querySinglePostHandler = controller.querySingle;

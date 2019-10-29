@@ -76,6 +76,13 @@ functions:
           path: /get-own-posts
           method: post
           cors: true
+  querySinglePostHandler:
+    handler: src/functions/posts/posts.querySinglePostHandler
+    events:
+      - http:
+          path: /get-post
+          method: post
+          cors: true
 
   addCommentHandler:
     handler: src/functions/posts/comments/comments.addCommentHandler

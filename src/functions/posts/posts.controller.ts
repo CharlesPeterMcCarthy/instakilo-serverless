@@ -105,6 +105,24 @@ export class PostsController {
         }
     }
 
+    public querySingle = async (event) => {
+        const data = JSON.parse(event.body);
+        const { postId, token}: { postId: string, token: string } = data;
+
+        const auth = await Auth.verify(token);
+        if (auth.error) return Response.error({ success: false, error: 'Authentication Invalid' });
+
+        try {
+            const res = await this.getPost(postId);
+            const post: Post = res.Item as Post;
+
+            return Response.success({ success: true, post });
+        } catch (err) {
+            console.error(err);
+            return Response.error({ success: false, error: 'Unable to get post information' });
+        }
+    }
+
     private savePost = (post: Post, user: UserBrief) => {
         const params = {
             TableName: 'INS-POSTS',
@@ -195,6 +213,17 @@ export class PostsController {
         };
 
         return await UserUtils.dynamo.scan(params).promise();
+    }
+
+    private getPost = async (postId: string) => {
+        const params = {
+            TableName: 'INS-POSTS',
+            Key: {
+                _id: postId
+            }
+        };
+
+        return await UserUtils.dynamo.get(params).promise();
     }
 
 }
