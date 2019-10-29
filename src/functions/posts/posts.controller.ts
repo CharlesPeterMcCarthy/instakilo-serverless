@@ -97,8 +97,9 @@ export class PostsController {
         try {
             const postIds: string[] = await UserUtils.getPostIds(auth.sub);
             const res = await this.getPosts(postIds);
+            const posts = res.Items;
 
-            return Response.success({ success: true, res });
+            return Response.success({ success: true, posts });
         } catch (err) {
             console.error(err);
             return Response.error({ success: false, error: 'Unable to retrieve posts' });
@@ -137,6 +138,7 @@ export class PostsController {
             ...post,
             _id: uuidv4(),
             createdBy: user,
+            comments: [],
             times: {
                 createdAt: new Date().toISOString()
             }
@@ -200,7 +202,7 @@ export class PostsController {
         postIds.forEach((id: string) => {
             index++;
             const titleKey = ':postIdVal' + index;
-            keysObj[titleKey.toString()] = id;
+            keysObj[titleKey] = id;
         });
 
         const params = {

@@ -91,6 +91,13 @@ functions:
           path: /add-comment
           method: post
           cors: true
+  deleteCommentHandler:
+    handler: src/functions/posts/comments/comments.deleteCommentHandler
+    events:
+      - http:
+          path: /delete-comment
+          method: post
+          cors: true
 
 resources:
   Resources:
