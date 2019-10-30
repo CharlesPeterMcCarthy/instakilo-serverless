@@ -1,6 +1,6 @@
 export default class Response {
 
-	public static success = (response) => Response.response(200, response);
+	public static success = (response?) => Response.response(200, { success: true, ...response });
 
 	public static error = (error) => Response.response(500, error);
 

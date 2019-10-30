@@ -6,6 +6,7 @@ import uuidv4 from 'uuid/v4';
 import Auth from '../../auth/verify';
 import UserUtils from '../../user/user';
 import { PostUpdateInfo } from './posts.interfaces';
+import ErrorTypes from '../../responses/error.types';
 
 export class PostsController {
 
@@ -16,19 +17,20 @@ export class PostsController {
         const { post, token }: { post: Post, token: string } = data;
 
         const auth = await Auth.verify(token);
-        if (auth.error) return Response.authFailed({ code: 'auth-invalid', message: 'Authentication Invalid', custom: true });
+        if (auth.error) return Response.authFailed(ErrorTypes.AUTH_INVALID());
 
         const user: UserBrief = await UserUtils.getBriefDetails(auth.sub);
-        if (!user) return Response.notFound({ code: 'invalid-user', message: 'User does not exist', custom: true });
+        if (!user) return Response.notFound(ErrorTypes.USER_NOT_FOUND());
 
         try {
             const savedPost = await this.savePost(post, user);
             await this.updateAddUserPosts(savedPost._id, user._id);
 
-            return Response.success({ success: true });
+            return Response.success();
         } catch (err) {
             console.error(err);
-            return Response.error({ code: 'unknown-error', message: 'Unable to create post', custom: true });
+            if (err.custom) return Response.error(err);
+            return Response.error(ErrorTypes.UNKNOWN('Unable to create post'));
         }
     }
 
@@ -37,20 +39,21 @@ export class PostsController {
         const { postId, token }: { postId: string, token: string } = data;
 
         const auth = await Auth.verify(token);
-        if (auth.error) return Response.authFailed({ code: 'auth-invalid', message: 'Authentication Invalid', custom: true });
+        if (auth.error) return Response.authFailed(ErrorTypes.AUTH_INVALID());
 
         const user: UserBrief = await UserUtils.getBriefDetails(auth.sub);
-        if (!user) return Response.notFound({ code: 'invalid-user', message: 'User does not exist', custom: true });
+        if (!user) return Response.notFound(ErrorTypes.USER_NOT_FOUND());
 
         try {
             await this.deletePost(postId, user._id);
             await this.updateRemoveUserPosts(postId, user._id);
 
-            return Response.success({ success: true });
+            return Response.success();
         } catch (err) {
             console.error(err);
-            if (err.code === 'ConditionalCheckFailedException') return Response.error({ code: 'unauthorised-post-delete', message: 'User is not authorised to delete this post', custom: true });
-            return Response.error({ code: 'unknown-error', message: 'Unable to delete post', custom: true });
+            if (err.code === 'ConditionalCheckFailedException') return Response.error(ErrorTypes.UNAUTH_POST_DELETE());
+            if (err.custom) return Response.error(err);
+            return Response.error(ErrorTypes.UNKNOWN('Unable to delete post'));
         }
     }
 
@@ -59,16 +62,17 @@ export class PostsController {
         const { postInfo, token }: { postInfo: PostUpdateInfo, token: string } = data;
 
         const auth = await Auth.verify(token);
-        if (auth.error) return Response.authFailed({ code: 'auth-invalid', message: 'Authentication Invalid', custom: true });
+        if (auth.error) return Response.authFailed(ErrorTypes.AUTH_INVALID());
 
         try {
             await this.updatePost(postInfo, auth.sub);
 
-            return Response.success({ success: true });
+            return Response.success();
         } catch (err) {
             console.error(err);
-            if (err.code === 'ConditionalCheckFailedException') return Response.error({ code: 'unauthorised-post-update', message: 'User is not authorised to update this post', custom: true });
-            return Response.error({ code: 'unknown-error', message: 'Unable to update post', custom: true });
+            if (err.code === 'ConditionalCheckFailedException') return Response.error(ErrorTypes.UNAUTH_POST_UPDATE());
+            if (err.custom) return Response.error(err);
+            return Response.error(ErrorTypes.UNKNOWN('Unable to update post'));
         }
     }
 
@@ -77,7 +81,7 @@ export class PostsController {
         const { limit, lastKey, token }: { limit: number, lastKey: string, token: string } = data;
 
         const auth = await Auth.verify(token);
-        if (auth.error) return Response.authFailed({ code: 'auth-invalid', message: 'Authentication Invalid', custom: true });
+        if (auth.error) return Response.authFailed(ErrorTypes.AUTH_INVALID());
 
         try {
             const res = await this.getPublicPosts(limit, lastKey);
@@ -85,10 +89,11 @@ export class PostsController {
             const newLastKey = res.LastEvaluatedKey && res.LastEvaluatedKey._id;
             const moreAvailable = !!res.LastEvaluatedKey;
 
-            return Response.success({ success: true, posts, lastKey: newLastKey, moreAvailable });
+            return Response.success({ posts, lastKey: newLastKey, moreAvailable });
         } catch (err) {
             console.error(err);
-            return Response.error({ code: 'unknown-error', message: 'Unable to retrieve posts', custom: true });
+            if (err.custom) return Response.error(err);
+            return Response.error(ErrorTypes.UNKNOWN('Unable to retrieve posts'));
         }
     }
 
@@ -97,17 +102,18 @@ export class PostsController {
         const token: string = data.token;
 
         const auth = await Auth.verify(token);
-        if (auth.error) return Response.error({ success: false, error: 'Authentication Invalid' });
+        if (auth.error) return Response.authFailed(ErrorTypes.AUTH_INVALID());
 
         try {
             const postIds: string[] = await UserUtils.getPostIds(auth.sub);
             const res = await this.getPosts(postIds);
             const posts = res.Items;
 
-            return Response.success({ success: true, posts });
+            return Response.success({ posts });
         } catch (err) {
             console.error(err);
-            return Response.error({ code: 'unknown-error', message: 'Unable to retrieve posts', custom: true });
+            if (err.custom) return Response.error(err);
+            return Response.error(ErrorTypes.UNKNOWN('Unable to retrieve posts'));
         }
     }
 
@@ -116,16 +122,17 @@ export class PostsController {
         const { postId, token}: { postId: string, token: string } = data;
 
         const auth = await Auth.verify(token);
-        if (auth.error) return Response.error({ success: false, error: 'Authentication Invalid' });
+        if (auth.error) return Response.authFailed(ErrorTypes.AUTH_INVALID());
 
         try {
             const res = await this.getPost(postId);
             const post: Post = res.Item as Post;
 
-            return Response.success({ success: true, post });
+            return Response.success({ post });
         } catch (err) {
             console.error(err);
-            return Response.error({ code: 'unknown-error', message: 'Unable to get post information', custom: true });
+            if (err.custom) return Response.error(err);
+            return Response.error(ErrorTypes.UNKNOWN('Unable to get post information'));
         }
     }
 
