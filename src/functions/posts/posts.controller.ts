@@ -16,10 +16,10 @@ export class PostsController {
         const { post, token }: { post: Post, token: string } = data;
 
         const auth = await Auth.verify(token);
-        if (auth.error) return Response.error({ success: false, error: 'Authentication Invalid' });
+        if (auth.error) return Response.authFailed({ code: 'auth-invalid', message: 'Authentication Invalid', custom: true });
 
         const user: UserBrief = await UserUtils.getBriefDetails(auth.sub);
-        if (!user) return Response.error({ success: false, error: 'Invalid user' })
+        if (!user) return Response.notFound({ code: 'invalid-user', message: 'User does not exist', custom: true });
 
         try {
             const savedPost = await this.savePost(post, user);
@@ -28,7 +28,7 @@ export class PostsController {
             return Response.success({ success: true });
         } catch (err) {
             console.error(err);
-            return Response.error({ success: false, error: 'Unable to create post' });
+            return Response.error({ code: 'unknown-error', message: 'Unable to create post', custom: true });
         }
     }
 
@@ -37,10 +37,10 @@ export class PostsController {
         const { postId, token }: { postId: string, token: string } = data;
 
         const auth = await Auth.verify(token);
-        if (auth.error) return Response.error({ success: false, error: 'Authentication Invalid' });
+        if (auth.error) return Response.authFailed({ code: 'auth-invalid', message: 'Authentication Invalid', custom: true });
 
         const user: UserBrief = await UserUtils.getBriefDetails(auth.sub);
-        if (!user) return Response.error({ success: false, error: 'Invalid user' })
+        if (!user) return Response.notFound({ code: 'invalid-user', message: 'User does not exist', custom: true });
 
         try {
             await this.deletePost(postId, user._id);
@@ -49,8 +49,8 @@ export class PostsController {
             return Response.success({ success: true });
         } catch (err) {
             console.error(err);
-            if (err.code === 'ConditionalCheckFailedException') return Response.error({ success: false, error: 'User is not authorised to delete this post' });
-            return Response.error({ success: false, error: 'Unable to delete post' });
+            if (err.code === 'ConditionalCheckFailedException') return Response.error({ code: 'unauthorised-post-delete', message: 'User is not authorised to delete this post', custom: true });
+            return Response.error({ code: 'unknown-error', message: 'Unable to delete post', custom: true });
         }
     }
 
@@ -59,7 +59,7 @@ export class PostsController {
         const { postInfo, token }: { postInfo: PostUpdateInfo, token: string } = data;
 
         const auth = await Auth.verify(token);
-        if (auth.error) return Response.error({ success: false, error: 'Authentication Invalid' });
+        if (auth.error) return Response.authFailed({ code: 'auth-invalid', message: 'Authentication Invalid', custom: true });
 
         try {
             await this.updatePost(postInfo, auth.sub);
@@ -67,8 +67,8 @@ export class PostsController {
             return Response.success({ success: true });
         } catch (err) {
             console.error(err);
-            if (err.code === 'ConditionalCheckFailedException') return Response.error({ success: false, error: 'User is not authorised to update this post' });
-            return Response.error({ success: false, error: 'Unable to update post' });
+            if (err.code === 'ConditionalCheckFailedException') return Response.error({ code: 'unauthorised-post-update', message: 'User is not authorised to update this post', custom: true });
+            return Response.error({ code: 'unknown-error', message: 'Unable to update post', custom: true });
         }
     }
 
@@ -77,7 +77,7 @@ export class PostsController {
         const { limit, lastKey, token }: { limit: number, lastKey: string, token: string } = data;
 
         const auth = await Auth.verify(token);
-        if (auth.error) return Response.error({ success: false, error: 'Authentication Invalid' });
+        if (auth.error) return Response.authFailed({ code: 'auth-invalid', message: 'Authentication Invalid', custom: true });
 
         try {
             const res = await this.getPublicPosts(limit, lastKey);
@@ -88,7 +88,7 @@ export class PostsController {
             return Response.success({ success: true, posts, lastKey: newLastKey, moreAvailable });
         } catch (err) {
             console.error(err);
-            return Response.error({ success: false, error: 'Unable to retrieve posts' });
+            return Response.error({ code: 'unknown-error', message: 'Unable to retrieve posts', custom: true });
         }
     }
 
@@ -107,7 +107,7 @@ export class PostsController {
             return Response.success({ success: true, posts });
         } catch (err) {
             console.error(err);
-            return Response.error({ success: false, error: 'Unable to retrieve posts' });
+            return Response.error({ code: 'unknown-error', message: 'Unable to retrieve posts', custom: true });
         }
     }
 
@@ -125,7 +125,7 @@ export class PostsController {
             return Response.success({ success: true, post });
         } catch (err) {
             console.error(err);
-            return Response.error({ success: false, error: 'Unable to get post information' });
+            return Response.error({ code: 'unknown-error', message: 'Unable to get post information', custom: true });
         }
     }
 

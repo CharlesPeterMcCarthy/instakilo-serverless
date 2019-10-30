@@ -36,10 +36,10 @@ export class CommentsController {
         const { postId, commentId, token }: { postId: string, commentId: string, token: string } = data;
 
         const auth = await Auth.verify(token);
-        if (auth.error) return Response.error({ success: false, error: 'Authentication Invalid' });
+        if (auth.error) return Response.error({ code: 'auth-invalid', message: 'Authentication Invalid', custom: true });
 
         const user: UserBrief = await UserUtils.getBriefDetails(auth.sub);
-        if (!user) return Response.error({ success: false, error: 'Invalid user' });
+        if (!user) return Response.error({ code: 'invalid-user', message: 'User does not exist', custom: true });
 
         try {
             await this.removeComment(postId, commentId, user._id);

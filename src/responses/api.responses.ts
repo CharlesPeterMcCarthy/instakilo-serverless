@@ -4,6 +4,10 @@ export default class Response {
 
 	public static error = (error) => Response.response(500, error);
 
+	public static authFailed = (error) => Response.response(401, error);
+
+	public static notFound = (error) => Response.response(404, error);
+
 	private static response = (statusCode, obj) => {
 		return {
 			statusCode,
