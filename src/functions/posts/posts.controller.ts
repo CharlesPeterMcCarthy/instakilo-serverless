@@ -1,7 +1,7 @@
 import * as AWS from 'aws-sdk';
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client';
 import Response from '../../responses/api.responses';
-import {Post, UserBrief} from '@instakilo/common';
+import { Post, UserBrief } from '@instakilo/common';
 import uuidv4 from 'uuid/v4';
 import Auth from '../../auth/verify';
 import UserUtils from '../../user/user';
@@ -22,7 +22,8 @@ export class PostsController {
         if (!user) return Response.error({ success: false, error: 'Invalid user' })
 
         try {
-            await this.savePost(post, user);
+            const savedPost = await this.savePost(post, user);
+            await this.updateAddUserPosts(savedPost._id, user._id);
 
             return Response.success({ success: true });
         } catch (err) {
@@ -38,8 +39,12 @@ export class PostsController {
         const auth = await Auth.verify(token);
         if (auth.error) return Response.error({ success: false, error: 'Authentication Invalid' });
 
+        const user: UserBrief = await UserUtils.getBriefDetails(auth.sub);
+        if (!user) return Response.error({ success: false, error: 'Invalid user' })
+
         try {
-            await this.deletePost(postId, auth.sub);
+            await this.deletePost(postId, user._id);
+            await this.updateRemoveUserPosts(postId, user._id);
 
             return Response.success({ success: true });
         } catch (err) {
@@ -124,13 +129,14 @@ export class PostsController {
         }
     }
 
-    private savePost = (post: Post, user: UserBrief) => {
+    private savePost = async (post: Post, user: UserBrief) => {
         const params = {
             TableName: 'INS-POSTS',
             Item: this.formatPostRecord(post, user)
         };
 
-        return this.dynamo.put(params).promise();
+        await this.dynamo.put(params).promise();
+        return params.Item;
     }
 
     private formatPostRecord = (post: Post, user: UserBrief) => {
@@ -144,6 +150,41 @@ export class PostsController {
             }
         }
     }
+
+    private updateAddUserPosts = (postId: string, userId: string) => {
+        const params = {
+            TableName: 'INS-USERS',
+            Key: {
+                _id: userId
+            },
+            UpdateExpression: 'SET posts = list_append(posts, :p)',
+            ExpressionAttributeValues: {
+                ':p': [ postId ]
+            },
+            ReturnValues: 'UPDATED_NEW'
+        };
+
+        return this.dynamo.update(params).promise();
+    }
+
+    private updateRemoveUserPosts = async (postId: string, userId: string) => {
+        const posts = await UserUtils.getPostIds(userId);
+        const postIndex = this.getPostIndex(posts, postId);
+        if (postIndex < 0) return;
+
+        const params = {
+            TableName: 'INS-USERS',
+            Key: {
+                _id: userId
+            },
+            UpdateExpression: `REMOVE posts[${postIndex}]`,
+            ReturnValues: 'UPDATED_NEW'
+        };
+
+        return this.dynamo.update(params).promise();
+    }
+
+    private getPostIndex = (posts: string[], postId: string) => posts.indexOf(postId);
 
     private deletePost = (postId, userId) => {
         const params = {
@@ -190,7 +231,7 @@ export class PostsController {
         const params = {
             TableName: 'INS-POSTS',
             Limit: limit,
-            ExclusiveStartKey: lastKey ? {_id: lastKey} : undefined
+            ExclusiveStartKey: lastKey ? { _id: lastKey } : undefined
         };
 
         return await UserUtils.dynamo.scan(params).promise();

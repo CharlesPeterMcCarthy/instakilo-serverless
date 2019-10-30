@@ -2,7 +2,7 @@ import * as AWS from 'aws-sdk';
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client';
 import Response from '../../../responses/api.responses';
 import Auth from '../../../auth/verify';
-import {Comment, Post, UserBrief} from '@instakilo/common';
+import { Comment, Post, UserBrief } from '@instakilo/common';
 import UserUtils from '../../../user/user';
 import uuidv4 from 'uuid/v4';
 
