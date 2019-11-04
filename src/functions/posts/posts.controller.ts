@@ -7,10 +7,12 @@ import Auth from '../../auth/verify';
 import UserUtils from '../../user/user';
 import { PostUpdateInfo } from './posts.interfaces';
 import ErrorTypes from '../../responses/error.types';
+import { HashTagsController } from "../hashtags/hashtags.controller";
 
 export class PostsController {
 
     private dynamo: DocumentClient = new AWS.DynamoDB.DocumentClient();
+    private hashTags: HashTagsController = new HashTagsController();
 
     public create = async (event) => {
         const data = JSON.parse(event.body);
@@ -19,12 +21,16 @@ export class PostsController {
         const auth = await Auth.verify(token);
         if (auth.error) return Response.authFailed(ErrorTypes.AUTH_INVALID());
 
-        const user: UserBrief = await UserUtils.getBriefDetails(auth.sub);
-        if (!user) return Response.notFound(ErrorTypes.USER_NOT_FOUND());
-
         try {
+            const user: UserBrief = await UserUtils.getBriefDetails(auth.sub);
+            if (!user) return Response.notFound(ErrorTypes.USER_NOT_FOUND());
+
             const savedPost = await this.savePost(post, user);
             await this.updateAddUserPosts(savedPost._id, user._id);
+
+            await this.hashTags.sort([], savedPost.hashTags, {_id: savedPost._id, imgURL: savedPost.imageURL});
+
+            console.log('done');
 
             return Response.success();
         } catch (err) {
@@ -241,7 +247,7 @@ export class PostsController {
             ExclusiveStartKey: lastKey ? { _id: lastKey } : undefined
         };
 
-        return await UserUtils.dynamo.scan(params).promise();
+        return await this.dynamo.scan(params).promise();
     }
 
     private getPosts = async (postIds: string[]) => {
@@ -262,7 +268,7 @@ export class PostsController {
             ExpressionAttributeValues: keysObj
         };
 
-        return await UserUtils.dynamo.scan(params).promise();
+        return await this.dynamo.scan(params).promise();
     }
 
     private getPost = async (postId: string) => {
@@ -273,7 +279,7 @@ export class PostsController {
             }
         };
 
-        return await UserUtils.dynamo.get(params).promise();
+        return await this.dynamo.get(params).promise();
     }
 
 }
