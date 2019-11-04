@@ -30,8 +30,6 @@ export class PostsController {
 
             await this.hashTags.sort([], savedPost.hashTags, {_id: savedPost._id, imgURL: savedPost.imageURL});
 
-            console.log('done');
-
             return Response.success();
         } catch (err) {
             console.error(err);
@@ -51,8 +49,11 @@ export class PostsController {
         if (!user) return Response.notFound(ErrorTypes.USER_NOT_FOUND());
 
         try {
+            const post: Post = (await this.getPost(postId)).Item as Post;
             await this.deletePost(postId, user._id);
             await this.updateRemoveUserPosts(postId, user._id);
+
+            await this.hashTags.sort(post.hashTags, [], { _id: post._id, imgURL: post.imageURL });
 
             return Response.success();
         } catch (err) {
@@ -71,7 +72,11 @@ export class PostsController {
         if (auth.error) return Response.authFailed(ErrorTypes.AUTH_INVALID());
 
         try {
+            const oldPost: Post = (await this.getPost(postInfo.postId)).Item as Post;
             await this.updatePost(postInfo, auth.sub);
+            const newPost: Post = (await this.getPost(postInfo.postId)).Item as Post;
+
+            await this.hashTags.sort(oldPost.hashTags, newPost.hashTags, { _id: newPost._id, imgURL: newPost.imageURL });
 
             return Response.success();
         } catch (err) {

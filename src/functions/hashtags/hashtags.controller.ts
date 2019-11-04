@@ -13,23 +13,29 @@ export class HashTagsController {
 
     public sort = async (oldTags: string[] = [], newTags: string[], post: PostBrief) => {
         const toAdd = _.difference(newTags, oldTags);
+        const toRemove = _.difference(oldTags, newTags);
 
         const additions = toAdd.map((t: string) => this.add(t, post));
+        const removals = toRemove.map((t: string) => this.remove(t, post));
         await Promise.all(additions);
+        await Promise.all(removals);
     }
 
     private add = async (hashTag: string, post: PostBrief) => {
-        console.log('adding tags')
-        console.log(hashTag);
-        console.log(post);
         const tagData = await this.getTagData(hashTag);
 
         if (tagData.Item) await this.updateAddToCurrent(hashTag, post);
         else await this.insertNew(hashTag, post);
     }
 
+    private remove = async (hashTag: string, post: PostBrief) => {
+        const tagData = await this.getTagData(hashTag);
+
+        if (tagData.Item.posts.length > 1) await this.updateRemoveFromCurrent(hashTag, post, tagData.Item.posts);
+        else await this.delete(hashTag);
+    }
+
     private getTagData = async (hashTag: string) => {
-        console.log('getting tag: ' + hashTag)
         const params = {
             TableName: 'INS-HASHTAGS',
             Key: {
@@ -41,8 +47,6 @@ export class HashTagsController {
     }
 
     private insertNew = async (hashTag: string, post: PostBrief): Promise<any> => {
-        console.log('inserting: ' + hashTag, post);
-
         const params = {
             TableName: 'INS-HASHTAGS',
             Item: {
@@ -55,8 +59,6 @@ export class HashTagsController {
     }
 
     private updateAddToCurrent = async (hashTag: string, post: PostBrief) => {
-        console.log('update add: ' + hashTag, post);
-
         const params = {
             TableName: 'INS-HASHTAGS',
             Key: {
@@ -70,6 +72,33 @@ export class HashTagsController {
         };
 
         return this.dynamo.update(params).promise();
+    }
+
+    private updateRemoveFromCurrent = async (hashTag: string, post: PostBrief, currentPosts: PostBrief[]) => {
+        const postIndex = currentPosts.map(p => p._id).indexOf(post._id);
+        if (postIndex < 0) return;
+
+        const params = {
+            TableName: 'INS-HASHTAGS',
+            Key: {
+                _tag: hashTag
+            },
+            UpdateExpression: `REMOVE posts[${postIndex}]`,
+            ReturnValues: 'UPDATED_NEW'
+        };
+
+        return this.dynamo.update(params).promise();
+    }
+
+    private delete = async (hashTag: string) => {
+        const params = {
+            TableName: 'INS-HASHTAGS',
+            Key: {
+                _tag: hashTag
+            }
+        }
+
+        return this.dynamo.delete(params).promise();
     }
 
 }
