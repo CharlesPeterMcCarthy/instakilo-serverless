@@ -92,6 +92,14 @@ functions:
           method: post
           cors: true
 
+  getPostsByHashTagHandler:
+    handler: src/functions/hashtags/hashtags.getPostsByHashTagHandler
+    events:
+      - http:
+          path: /posts-by-hashtag
+          method: post
+          cors: true
+
 resources:
   Resources:
     UserTable:

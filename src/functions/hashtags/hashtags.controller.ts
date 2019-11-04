@@ -1,6 +1,9 @@
 import * as AWS from 'aws-sdk';
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client';
 import _ from 'lodash';
+import Auth from "../../auth/verify";
+import Response from "../../responses/api.responses";
+import ErrorTypes from "../../responses/error.types";
 
 interface PostBrief {
     _id: string,
@@ -19,6 +22,24 @@ export class HashTagsController {
         const removals = toRemove.map((t: string) => this.remove(t, post));
         await Promise.all(additions);
         await Promise.all(removals);
+    }
+
+    public getPosts = async (event) => {
+        const data = JSON.parse(event.body);
+        const { hashTag, token }: { hashTag: string, token: string } = data;
+
+        const auth = await Auth.verify(token);
+        if (auth.error) return Response.authFailed(ErrorTypes.AUTH_INVALID());
+
+        try {
+            const res = await this.getTagData(hashTag);
+
+            return Response.success(res.Item);
+        } catch (err) {
+            console.error(err);
+            if (err.custom) return Response.error(err);
+            return Response.error(ErrorTypes.UNKNOWN('Unable to get posts relevant to HashTag'));
+        }
     }
 
     private add = async (hashTag: string, post: PostBrief) => {
