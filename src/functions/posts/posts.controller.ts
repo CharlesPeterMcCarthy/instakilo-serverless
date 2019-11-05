@@ -8,11 +8,13 @@ import UserUtils from '../../user/user';
 import { PostUpdateInfo } from './posts.interfaces';
 import ErrorTypes from '../../responses/error.types';
 import { HashTagsController } from "../hashtags/hashtags.controller";
+import {LocationsController} from "../locations/locations.controller";
 
 export class PostsController {
 
     private dynamo: DocumentClient = new AWS.DynamoDB.DocumentClient();
     private hashTags: HashTagsController = new HashTagsController();
+    private locations: LocationsController = new LocationsController();
 
     public create = async (event) => {
         const data = JSON.parse(event.body);
@@ -28,7 +30,9 @@ export class PostsController {
             const savedPost = await this.savePost(post, user);
             await this.updateAddUserPosts(savedPost._id, user._id);
 
-            await this.hashTags.sort([], savedPost.hashTags, {_id: savedPost._id, imgURL: savedPost.imageURL});
+            const { locationName, placeData } = post.location;
+            await this.hashTags.sort([], savedPost.hashTags, { _id: savedPost._id, imgURL: savedPost.imageURL });
+            await this.locations.add(placeData.place_id, locationName, placeData, { _id: savedPost._id, imgURL: savedPost.imageURL });
 
             return Response.success();
         } catch (err) {
