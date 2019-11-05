@@ -99,6 +99,13 @@ functions:
           path: /posts-by-hashtag
           method: post
           cors: true
+  getPostsByLocationHandler:
+    handler: src/functions/locations/locations.getPostsByLocationHandler
+    events:
+      - http:
+          path: /posts-by-location
+          method: post
+          cors: true
 
 resources:
   Resources:
