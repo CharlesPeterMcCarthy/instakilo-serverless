@@ -17,6 +17,13 @@ export class LocationsController {
         else await this.insertNew(placeId, locationName, geoData, post);
     }
 
+    public remove = async (placeId: string, post: PostBrief) => {
+        const locationData = await this.getLocationData(placeId);
+
+        if (locationData.Item.posts.length > 1) await this.updateRemoveFromCurrent(placeId, post, locationData.Item.posts);
+        else await this.delete(placeId);
+    }
+
     private getLocationData = async (placeId: string) => {
         const params = {
             TableName: 'INS-LOCATIONS',
@@ -56,6 +63,33 @@ export class LocationsController {
         };
 
         return this.dynamo.update(params).promise();
+    }
+
+    private updateRemoveFromCurrent = async (placeId: string, post: PostBrief, currentPosts: PostBrief[]) => {
+        const postIndex = currentPosts.map(p => p._id).indexOf(post._id);
+        if (postIndex < 0) return;
+
+        const params = {
+            TableName: 'INS-LOCATIONS',
+            Key: {
+                _placeId: placeId
+            },
+            UpdateExpression: `REMOVE posts[${postIndex}]`,
+            ReturnValues: 'UPDATED_NEW'
+        };
+
+        return this.dynamo.update(params).promise();
+    }
+
+    private delete = async (placeId: string) => {
+        const params = {
+            TableName: 'INS-LOCATIONS',
+            Key: {
+                _placeId: placeId
+            }
+        }
+
+        return this.dynamo.delete(params).promise();
     }
 
 }

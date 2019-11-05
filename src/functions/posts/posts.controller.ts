@@ -58,6 +58,7 @@ export class PostsController {
             await this.updateRemoveUserPosts(postId, user._id);
 
             await this.hashTags.sort(post.hashTags, [], { _id: post._id, imgURL: post.imageURL });
+            await this.locations.remove(post.location.placeData.place_id, { _id: post._id, imgURL: post.imageURL });
 
             return Response.success();
         } catch (err) {
