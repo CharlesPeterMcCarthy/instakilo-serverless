@@ -11,6 +11,7 @@ export class SignUpController {
 	}
 
 	public signUp = async (event: SignUpPayload) => {
+		console.log(event);
 		try {
 			await this.saveUser(event);
 			event = this.setCustomMessage(event);
@@ -22,7 +23,10 @@ export class SignUpController {
 	}
 
 	private saveUser = (event: SignUpPayload) => {
-		const { sub, email, email_verified } = event.request.userAttributes;
+		const attrs = event.request.userAttributes;
+		const { sub, email, email_verified, birthdate } = attrs;
+		const firstName = attrs[ 'custom:firstname' ];
+		const lastName = attrs[ 'custom:lastname' ];
 		const username = event.userName;
 		const confirmed = email_verified === 'true'; // email_verified is sent as a string from Cognito
 		const now: string = new Date().toISOString();
@@ -34,6 +38,9 @@ export class SignUpController {
 				username,
 				email,
 				confirmed,
+				firstName,
+				lastName,
+				dob: birthdate,
 				times: {
 					signedUpAt: now
 				}
@@ -46,7 +53,9 @@ export class SignUpController {
 	private setCustomMessage = (event: SignUpPayload): SignUpPayload => {
 		event.response.emailSubject = 'Welcome to InstaKilo';
 		event.response.emailMessage =
-			`Welcome to InstaKilo!<br><br>
+
+			`Hi ${event.request.userAttributes['custom:firstname']}, 
+			Welcome to InstaKilo!<br><br>
 			Thanks for signing up.<br><br>
 			Use this link to confirm your account: 
 			<a href="http://localhost:4200/confirm/${event.request.codeParameter}">Confirm</a><br>

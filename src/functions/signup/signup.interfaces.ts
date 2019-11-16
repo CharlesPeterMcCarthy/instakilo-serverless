@@ -20,7 +20,10 @@ export interface SignUpPayload extends CognitoPayload { // trigger = 'CustomMess
 			sub: string,
 			'cognito:user_status': 'UNCONFIRMED' | 'CONFIRMED',
 			email_verified: string | boolean,
-			email: string
+			email: string,
+			birthdate: string,
+			'custom:firstname': string,
+			'custom:lastname': string
 		},
 		codeParameter: string, // {####}
 		linkParameter: string, // {##Click Here##}
