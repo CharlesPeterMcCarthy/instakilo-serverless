@@ -39,6 +39,4 @@ export default class UserUtils {
         return res.Item as User;
     }
 
-
-
 }

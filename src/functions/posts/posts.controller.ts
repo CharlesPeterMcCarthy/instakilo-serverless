@@ -8,7 +8,7 @@ import UserUtils from '../../user/user';
 import { PostUpdateInfo } from './posts.interfaces';
 import ErrorTypes from '../../responses/error.types';
 import { HashTagsController } from "../hashtags/hashtags.controller";
-import {LocationsController} from "../locations/locations.controller";
+import { LocationsController } from "../locations/locations.controller";
 
 export class PostsController {
 
@@ -17,6 +17,7 @@ export class PostsController {
     private locations: LocationsController = new LocationsController();
 
     public create = async (event) => {
+        console.log(event);
         const data = JSON.parse(event.body);
         const { post, token }: { post: Post, token: string } = data;
 
@@ -27,12 +28,15 @@ export class PostsController {
             const user: UserBrief = await UserUtils.getBriefDetails(auth.sub);
             if (!user) return Response.notFound(ErrorTypes.USER_NOT_FOUND());
 
+            console.log('NOW')
             const savedPost = await this.savePost(post, user);
+            console.log('DONE')
             await this.updateAddUserPosts(savedPost._id, user._id);
+            console.log('SECOND DONE')
 
-            const { locationName, placeData } = post.location;
-            await this.hashTags.sort([], savedPost.hashTags, { _id: savedPost._id, imgURL: savedPost.imageURL });
-            await this.locations.add(placeData.place_id, locationName, placeData, { _id: savedPost._id, imgURL: savedPost.imageURL });
+            // const { locationName, placeData } = post.location;
+            // await this.hashTags.sort([], savedPost.hashTags, { _id: savedPost._id, imgURL: savedPost.imageURL });
+            // await this.locations.add(placeData.place_id, locationName, placeData, { _id: savedPost._id, imgURL: savedPost.imageURL });
 
             return Response.success();
         } catch (err) {
@@ -93,6 +97,7 @@ export class PostsController {
     }
 
     public queryPublic = async (event) => {
+        console.log(event);
         const data = JSON.parse(event.body);
         const { limit, lastKey, token }: { limit: number, lastKey: string, token: string } = data;
 
@@ -168,6 +173,8 @@ export class PostsController {
             _id: uuidv4(),
             createdBy: user,
             comments: [],
+            timestamp: new Date().getTime(),
+            // timestamp2: new Date().getTime(),
             times: {
                 createdAt: new Date().toISOString()
             }
@@ -251,8 +258,16 @@ export class PostsController {
     }
 
     private getPublicPosts = async (limit: number, lastKey: string) => {
+        console.log(limit)
+        console.log(lastKey)
         const params = {
             TableName: 'INS-POSTS',
+            // IndexName: "timestamp2-index",
+            // KeyConditionExpression: "Email = :email",
+            // ExpressionAttributeValues:{
+            //     ":email": { "S" : email }
+            // },
+            //ScanIndexForward: false,
             Limit: limit,
             ExclusiveStartKey: lastKey ? { _id: lastKey } : undefined
         };

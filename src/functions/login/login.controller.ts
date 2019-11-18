@@ -6,7 +6,7 @@ export class LoginController {
 
 	private dynamo: DocumentClient = new AWS.DynamoDB.DocumentClient();
 
-	public login = async (event: LoginPayload) => {
+	public login = async (event: LoginPayload) => { // Used by Cognito only
 		try {
 			await this.updateUser(event.request.userAttributes.sub);
 

@@ -6,7 +6,7 @@ export class ConfirmSignUpController {
 
 	private dynamo: DocumentClient = new AWS.DynamoDB.DocumentClient();
 
-	public confirmSignUp = async (event: ConfirmSignUpPayload) => {
+	public confirmSignUp = async (event: ConfirmSignUpPayload) => { // Used by Cognito only
 		try {
 			await this.updateUser(event.request.userAttributes.sub);
 

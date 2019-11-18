@@ -6,11 +6,11 @@ export class SignUpController {
 
 	private dynamo: DocumentClient = new AWS.DynamoDB.DocumentClient();
 
-	public signUpChecks = async (event: SignUpChecksPayload) => {
+	public signUpChecks = async (event: SignUpChecksPayload) => { // Used by Cognito only
 		return event; // Temporary - Replace with username & email checks
 	}
 
-	public signUp = async (event: SignUpPayload) => {
+	public signUp = async (event: SignUpPayload) => { // Used by Cognito only
 		console.log(event);
 		try {
 			await this.saveUser(event);
@@ -43,7 +43,8 @@ export class SignUpController {
 				dob: birthdate,
 				times: {
 					signedUpAt: now
-				}
+				},
+				posts: []
 			}
 		};
 
@@ -51,15 +52,16 @@ export class SignUpController {
 	}
 
 	private setCustomMessage = (event: SignUpPayload): SignUpPayload => {
+		const req = event.request;
+
 		event.response.emailSubject = 'Welcome to InstaKilo';
 		event.response.emailMessage =
-
-			`Hi ${event.request.userAttributes['custom:firstname']}, 
+			`Hi ${req.userAttributes['custom:firstname']}, 
 			Welcome to InstaKilo!<br><br>
 			Thanks for signing up.<br><br>
 			Use this link to confirm your account: 
-			<a href="http://localhost:4200/confirm/${event.request.codeParameter}">Confirm</a><br>
-			Or use the confirmation code: ${event.request.codeParameter}<br><br>
+			<a href="http://localhost:4200/confirm/${event.userName}/${req.codeParameter}">Confirm</a><br>
+			Or use the confirmation code: ${req.codeParameter}<br><br>
 			- InstaKilo`;
 
 		return event;
