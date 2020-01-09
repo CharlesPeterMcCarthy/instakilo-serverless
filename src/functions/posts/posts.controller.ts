@@ -28,15 +28,12 @@ export class PostsController {
             const user: UserBrief = await UserUtils.getBriefDetails(auth.sub);
             if (!user) return Response.notFound(ErrorTypes.USER_NOT_FOUND());
 
-            console.log('NOW')
             const savedPost = await this.savePost(post, user);
-            console.log('DONE')
             await this.updateAddUserPosts(savedPost._id, user._id);
-            console.log('SECOND DONE')
 
-            // const { locationName, placeData } = post.location;
-            // await this.hashTags.sort([], savedPost.hashTags, { _id: savedPost._id, imgURL: savedPost.imageURL });
-            // await this.locations.add(placeData.place_id, locationName, placeData, { _id: savedPost._id, imgURL: savedPost.imageURL });
+            const { locationName, placeData } = post.location;
+            await this.hashTags.sort([], savedPost.hashTags, { _id: savedPost._id, imgURL: savedPost.imageURL });
+            await this.locations.add(placeData.place_id, locationName, placeData, { _id: savedPost._id, imgURL: savedPost.imageURL });
 
             return Response.success();
         } catch (err) {

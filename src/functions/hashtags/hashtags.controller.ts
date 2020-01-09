@@ -42,6 +42,25 @@ export class HashTagsController {
         }
     }
 
+    public getMatchingHashTagPosts = async (event) => {
+        const data = JSON.parse(event.body);
+        const { hashTag, token }: { hashTag: string, token: string } = data;
+
+        const auth = await Auth.verify(token);
+        if (auth.error) return Response.authFailed(ErrorTypes.AUTH_INVALID());
+
+        try {
+            const res = await this.getSimilarHashTags(hashTag);
+
+            return Response.success({ hashtags: res.Items });
+        } catch (err) {
+            console.error(err);
+            if (err.custom) return Response.error(err);
+            return Response.error(ErrorTypes.UNKNOWN('Unable to get similar HashTags & Posts'));
+        }
+
+    }
+
     private add = async (hashTag: string, post: PostBrief) => {
         const tagData = await this.getTagData(hashTag);
 
@@ -65,6 +84,22 @@ export class HashTagsController {
         };
 
         return this.dynamo.get(params).promise();
+    }
+
+    private getSimilarHashTags = async (hashTag: string) => {
+        const params = {
+            TableName: 'INS-HASHTAGS',
+            FilterExpression: 'contains(#ht, :ht)',
+            ProjectionExpression: '#ht',
+            ExpressionAttributeNames: {
+                '#ht': '_tag',
+            },
+            ExpressionAttributeValues: {
+                ':ht': hashTag,
+            }
+        };
+
+        return this.dynamo.scan(params).promise();
     }
 
     private insertNew = async (hashTag: string, post: PostBrief): Promise<any> => {

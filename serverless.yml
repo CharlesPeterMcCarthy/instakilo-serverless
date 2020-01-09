@@ -107,6 +107,14 @@ functions:
           method: post
           cors: true
 
+  getMatchingHashTagPostsHandler:
+    handler: src/functions/hashtags/hashtags.getMatchingHashTagPostsHandler
+    events:
+      - http:
+          path: /matching-hashtags
+          method: post
+          cors: true
+
 resources:
   Resources:
     UserTable:
