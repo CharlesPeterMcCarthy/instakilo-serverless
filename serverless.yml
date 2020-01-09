@@ -107,11 +107,18 @@ functions:
           method: post
           cors: true
 
-  getMatchingHashTagPostsHandler:
-    handler: src/functions/hashtags/hashtags.getMatchingHashTagPostsHandler
+  getMatchingHashTagsHandler:
+    handler: src/functions/hashtags/hashtags.getMatchingHashTagsHandler
     events:
       - http:
           path: /matching-hashtags
+          method: post
+          cors: true
+  getMatchingLocationsHandler:
+    handler: src/functions/locations/locations.getMatchingLocationsHandler
+    events:
+      - http:
+          path: /matching-locations
           method: post
           cors: true
 

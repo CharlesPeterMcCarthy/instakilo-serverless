@@ -31,6 +31,25 @@ export class LocationsController {
         }
     }
 
+    public getMatchingLocations = async (event) => {
+        const data = JSON.parse(event.body);
+        const { location, token }: { location: string, token: string } = data;
+
+        const auth = await Auth.verify(token);
+        if (auth.error) return Response.authFailed(ErrorTypes.AUTH_INVALID());
+
+        try {
+            const res = await this.getSimilarLocations(location);
+
+            return Response.success({ locations: res.Items });
+        } catch (err) {
+            console.error(err);
+            if (err.custom) return Response.error(err);
+            return Response.error(ErrorTypes.UNKNOWN('Unable to get similar Locations'));
+        }
+
+    }
+
     public add = async (placeId: string, locationName: string, geoData: object, post: PostBrief) => {
         const locationData = await this.getLocationData(placeId);
 
@@ -54,6 +73,23 @@ export class LocationsController {
         };
 
         return this.dynamo.get(params).promise();
+    }
+
+    private getSimilarLocations = async (location: string) => {
+        const params = {
+            TableName: 'INS-LOCATIONS',
+            FilterExpression: 'contains(#lo, :lo)',
+            ProjectionExpression: '#lo, #pid',
+            ExpressionAttributeNames: {
+                '#lo': 'locationName',
+                '#pid': '_placeId'
+            },
+            ExpressionAttributeValues: {
+                ':lo': location
+            }
+        };
+
+        return this.dynamo.scan(params).promise();
     }
 
     private insertNew = async (placeId: string, locationName: string, geoData: object, post: PostBrief): Promise<any> => {

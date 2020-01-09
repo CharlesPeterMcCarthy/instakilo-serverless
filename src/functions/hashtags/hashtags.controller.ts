@@ -42,7 +42,7 @@ export class HashTagsController {
         }
     }
 
-    public getMatchingHashTagPosts = async (event) => {
+    public getMatchingHashTags = async (event) => {
         const data = JSON.parse(event.body);
         const { hashTag, token }: { hashTag: string, token: string } = data;
 
@@ -56,9 +56,8 @@ export class HashTagsController {
         } catch (err) {
             console.error(err);
             if (err.custom) return Response.error(err);
-            return Response.error(ErrorTypes.UNKNOWN('Unable to get similar HashTags & Posts'));
+            return Response.error(ErrorTypes.UNKNOWN('Unable to get similar HashTags'));
         }
-
     }
 
     private add = async (hashTag: string, post: PostBrief) => {
@@ -92,10 +91,10 @@ export class HashTagsController {
             FilterExpression: 'contains(#ht, :ht)',
             ProjectionExpression: '#ht',
             ExpressionAttributeNames: {
-                '#ht': '_tag',
+                '#ht': '_tag'
             },
             ExpressionAttributeValues: {
-                ':ht': hashTag,
+                ':ht': hashTag
             }
         };
 
