@@ -122,6 +122,21 @@ functions:
           method: post
           cors: true
 
+  myProfileHandler:
+    handler: src/functions/users/users.myProfileHandler
+    events:
+      - http:
+          path: /user-profile/mine
+          method: post
+          cors: true
+  otherProfileHandler:
+    handler: src/functions/users/users.otherProfileHandler
+    events:
+      - http:
+          path: /user-profile/other
+          method: post
+          cors: true
+
 resources:
   Resources:
     UserTable:
