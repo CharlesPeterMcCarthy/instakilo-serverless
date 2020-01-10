@@ -78,14 +78,16 @@ export class LocationsController {
     private getSimilarLocations = async (location: string) => {
         const params = {
             TableName: 'INS-LOCATIONS',
-            FilterExpression: 'contains(#lo, :lo)',
-            ProjectionExpression: '#lo, #pid',
+            FilterExpression: 'contains(#los, :lo)',
+            ProjectionExpression: '#lo, #pid, #c',
             ExpressionAttributeNames: {
                 '#lo': 'locationName',
-                '#pid': '_placeId'
+                '#los': 'locationNameSearch',
+                '#pid': '_placeId',
+                '#c': 'count'
             },
             ExpressionAttributeValues: {
-                ':lo': location
+                ':lo': location.toLowerCase()
             }
         };
 
@@ -98,8 +100,10 @@ export class LocationsController {
             Item: {
                 _placeId: placeId,
                 locationName,
+                locationNameSearch: locationName.toLowerCase(),
                 geoData,
-                posts: [ post ]
+                posts: [ post ],
+                count: 1
             }
         };
 
@@ -112,9 +116,13 @@ export class LocationsController {
             Key: {
                 _placeId: placeId
             },
-            UpdateExpression: 'SET posts = list_append(posts, :p)',
+            UpdateExpression: 'SET posts = list_append(posts, :p), #c = #c + :c',
+            ExpressionAttributeNames: {
+                '#c': 'count'
+            },
             ExpressionAttributeValues: {
-                ':p': [ post ]
+                ':p': [ post ],
+                ':c': 1
             },
             ReturnValues: 'UPDATED_NEW'
         };
@@ -131,7 +139,13 @@ export class LocationsController {
             Key: {
                 _placeId: placeId
             },
-            UpdateExpression: `REMOVE posts[${postIndex}]`,
+            UpdateExpression: `REMOVE posts[${postIndex}], #c = #c + :c`,
+            ExpressionAttributeNames: {
+                '#c': 'count'
+            },
+            ExpressionAttributeValues: {
+                ':c': -1
+            },
             ReturnValues: 'UPDATED_NEW'
         };
 

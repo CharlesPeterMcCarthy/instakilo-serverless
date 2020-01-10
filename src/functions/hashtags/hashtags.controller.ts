@@ -89,12 +89,13 @@ export class HashTagsController {
         const params = {
             TableName: 'INS-HASHTAGS',
             FilterExpression: 'contains(#ht, :ht)',
-            ProjectionExpression: '#ht',
+            ProjectionExpression: '#ht, #c',
             ExpressionAttributeNames: {
-                '#ht': '_tag'
+                '#ht': '_tag',
+                '#c': 'count'
             },
             ExpressionAttributeValues: {
-                ':ht': hashTag
+                ':ht': hashTag.toLowerCase()
             }
         };
 
@@ -106,7 +107,8 @@ export class HashTagsController {
             TableName: 'INS-HASHTAGS',
             Item: {
                 _tag: hashTag,
-                posts: [ post ]
+                posts: [ post ],
+                count: 1
             }
         };
 
@@ -119,9 +121,13 @@ export class HashTagsController {
             Key: {
                 _tag: hashTag
             },
-            UpdateExpression: 'SET posts = list_append(posts, :p)',
+            UpdateExpression: 'SET posts = list_append(posts, :p), #c = #c + :c',
+            ExpressionAttributeNames: {
+                '#c': 'count'
+            },
             ExpressionAttributeValues: {
-                ':p': [ post ]
+                ':p': [ post ],
+                ':c': 1
             },
             ReturnValues: 'UPDATED_NEW'
         };
@@ -138,7 +144,13 @@ export class HashTagsController {
             Key: {
                 _tag: hashTag
             },
-            UpdateExpression: `REMOVE posts[${postIndex}]`,
+            UpdateExpression: `REMOVE posts[${postIndex}], #c = #c + :c`,
+            ExpressionAttributeNames: {
+                '#c': 'count'
+            },
+            ExpressionAttributeValues: {
+                ':c': -1
+            },
             ReturnValues: 'UPDATED_NEW'
         };
 
