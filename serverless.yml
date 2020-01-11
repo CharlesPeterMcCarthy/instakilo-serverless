@@ -136,6 +136,13 @@ functions:
           path: /user-profile/other
           method: post
           cors: true
+  editProfileHandler:
+    handler: src/functions/users/users.editProfileHandler
+    events:
+      - http:
+          path: /user-profile/edit
+          method: post
+          cors: true
 
 resources:
   Resources:

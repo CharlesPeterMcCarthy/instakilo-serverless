@@ -31,6 +31,12 @@ export class SignUpController {
 		const confirmed = email_verified === 'true'; // email_verified is sent as a string from Cognito
 		const now: string = new Date().toISOString();
 
+		if (!firstName) throw 'First Name is missing';
+		if (!lastName) throw 'Last Name is missing';
+		if (!username) throw 'Username is missing';
+		if (!birthdate) throw 'DOB is missing';
+		if (!email) throw 'Email is missing';
+
 		const params = {
 			TableName: 'INS-USERS',
 			Item: {

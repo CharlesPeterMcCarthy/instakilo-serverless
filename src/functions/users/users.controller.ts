@@ -1,7 +1,7 @@
 import * as AWS from 'aws-sdk';
 import { DocumentClient } from 'aws-sdk/lib/dynamodb/document_client';
 import Response from '../../responses/api.responses';
-import { UserBrief } from '@instakilo/common';
+import { EditProfile, UserBrief } from '@instakilo/common';
 import Auth from '../../auth/verify';
 import UserUtils from '../../user/user';
 import ErrorTypes from '../../responses/error.types';
@@ -60,6 +60,25 @@ export class UsersController {
         }
     }
 
+    public editProfile = async (event) => {
+        console.log(event);
+        const data = JSON.parse(event.body);
+        const { userData, token }: { userData: EditProfile, token: string } = data;
+
+        const auth = await Auth.verify(token);
+        if (auth.error) return Response.authFailed(ErrorTypes.AUTH_INVALID());
+
+        try {
+            await this.updateUser(userData, auth.sub);
+
+            return Response.success();
+        } catch (err) {
+            console.error(err);
+            if (err.custom) return Response.error(err);
+            return Response.error(ErrorTypes.UNKNOWN('Unable to retrieve other user profile'));
+        }
+    }
+
     private getProfile = async (userId: string, fields: string) => {
         const params = {
             TableName: 'INS-USERS',
@@ -75,6 +94,30 @@ export class UsersController {
         console.log(params);
 
         return await this.dynamo.get(params).promise();
+    }
+
+    private updateUser = async (userData: EditProfile, userId: string) => {
+        const { firstName, lastName, dob } = userData;
+
+        if (!firstName) throw 'First Name is missing';
+        if (!lastName) throw 'Last Name is missing';
+        if (!dob) throw 'DOB is missing';
+
+        const params = {
+            TableName: 'INS-USERS',
+            Key: {
+                _id: userId
+            },
+            UpdateExpression: 'SET firstName = :f, lastName = :l, dob = :d',
+            ExpressionAttributeValues: {
+                ':f': firstName,
+                ':l': lastName,
+                ':d': dob
+            },
+            ReturnValues: 'UPDATED_NEW'
+        };
+
+        return await this.dynamo.update(params).promise();
     }
 
 }
