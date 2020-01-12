@@ -79,6 +79,25 @@ export class UsersController {
         }
     }
 
+    public updateAvatar = async (event) => {
+        console.log(event);
+        const data = JSON.parse(event.body);
+        const { postId, imageURL, token }: { postId: string, imageURL: string, token: string } = data;
+
+        const auth = await Auth.verify(token);
+        if (auth.error) return Response.authFailed(ErrorTypes.AUTH_INVALID());
+
+        try {
+            await this.changeAvatar(postId, imageURL, auth.sub);
+
+            return Response.success();
+        } catch (err) {
+            console.error(err);
+            if (err.custom) return Response.error(err);
+            return Response.error(ErrorTypes.UNKNOWN('Unable to update avatar'));
+        }
+    }
+
     private getProfile = async (userId: string, fields: string) => {
         const params = {
             TableName: 'INS-USERS',
@@ -118,6 +137,26 @@ export class UsersController {
         };
 
         return await this.dynamo.update(params).promise();
+    }
+
+    private changeAvatar = async (postId: string, imageURL: string, userId: string) => {
+        const params = {
+            TableName: 'INS-USERS',
+            Key: {
+                _id: userId
+            },
+            UpdateExpression: 'SET avatar = :a',
+            ExpressionAttributeValues: {
+                ':a': {
+                    _id: postId,
+                    imageURL
+                }
+            },
+            ReturnValues: 'UPDATED_NEW'
+        };
+
+        return await this.dynamo.update(params).promise();
+
     }
 
 }

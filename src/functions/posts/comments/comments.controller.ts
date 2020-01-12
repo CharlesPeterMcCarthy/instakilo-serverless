@@ -24,8 +24,10 @@ export class CommentsController {
         try {
             const comment: Comment = this.formatComment(commentText, user);
             await this.saveComment(comment, postId);
+            const res = await this.getPostComments(postId);
+            const comments = res.Item.comments;
 
-            return Response.success();
+            return Response.success({ comments });
         } catch (err) {
             console.error(err);
             if (err.custom) return Response.error(err);
@@ -45,8 +47,10 @@ export class CommentsController {
 
         try {
             await this.removeComment(postId, commentId, user._id);
+            const res = await this.getPostComments(postId);
+            const comments = res.Item.comments;
 
-            return Response.success();
+            return Response.success({ comments });
         } catch (err) {
             console.error(err);
             if (err.custom) return Response.error(err);
@@ -115,7 +119,7 @@ export class CommentsController {
             Key: {
                 _id: postId
             },
-            UpdateExpression: `REMOVE comments[${commentIndex}], commentCount = commentCount + :count`,
+            UpdateExpression: `REMOVE comments[${commentIndex}] SET commentCount = commentCount + :count`,
             ExpressionAttributeValues: {
                 ':count': -1
             },
@@ -126,5 +130,17 @@ export class CommentsController {
     }
 
     private getCommentIndex = async (comments: Comment[], commentId: string) => comments.map((c: Comment) => c._id).indexOf(commentId);
+
+    private getPostComments = async (postId: string) => {
+        const params = {
+            TableName: 'INS-POSTS',
+            Key: {
+                _id: postId
+            },
+            ProjectionExpression: 'comments'
+        };
+
+        return await this.dynamo.get(params).promise();
+    }
 
 }

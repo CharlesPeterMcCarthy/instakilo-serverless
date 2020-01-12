@@ -143,6 +143,13 @@ functions:
           path: /user-profile/edit
           method: post
           cors: true
+  updateAvatarHandler:
+    handler: src/functions/users/users.updateAvatarHandler
+    events:
+      - http:
+          path: /user-profile/update-avatar
+          method: post
+          cors: true
 
 resources:
   Resources:
