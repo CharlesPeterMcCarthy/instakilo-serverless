@@ -170,6 +170,7 @@ export class PostsController {
             _id: uuidv4(),
             createdBy: user,
             comments: [],
+            commentCount: 0,
             timestamp: new Date().getTime(),
             // timestamp2: new Date().getTime(),
             times: {

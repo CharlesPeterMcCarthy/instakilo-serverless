@@ -70,9 +70,10 @@ export class CommentsController {
             Key: {
                 _id: postId
             },
-            UpdateExpression: 'SET comments = list_append(comments, :c)',
+            UpdateExpression: 'SET comments = list_append(comments, :c), commentCount = commentCount + :count',
             ExpressionAttributeValues: {
-                ':c': [ comment ]
+                ':c': [ comment ],
+                ':count': 1
             },
             ReturnValues: 'UPDATED_NEW'
         };
@@ -114,7 +115,10 @@ export class CommentsController {
             Key: {
                 _id: postId
             },
-            UpdateExpression: `REMOVE comments[${commentIndex}]`,
+            UpdateExpression: `REMOVE comments[${commentIndex}], commentCount = commentCount + :count`,
+            ExpressionAttributeValues: {
+                ':count': -1
+            },
             ReturnValues: 'UPDATED_NEW'
         };
 
