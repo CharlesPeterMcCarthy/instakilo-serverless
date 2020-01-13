@@ -68,8 +68,7 @@ export class SignUpController {
 			Welcome to InstaKilo!<br><br>
 			Thanks for signing up.<br><br>
 			Use this link to confirm your account: 
-			<a href="http://localhost:4200/confirm/${event.userName}/${req.codeParameter}">Confirm</a><br>
-			Or use the confirmation code: ${req.codeParameter}<br><br>
+			<a href="http://instakilo-hosting.s3-website-eu-west-1.amazonaws.com//confirm/${event.userName}/${req.codeParameter}">Confirm</a><br>
 			- InstaKilo`;
 
 		return event;
