@@ -117,6 +117,25 @@ export class UsersController {
         }
     }
 
+    public getMatchingUsers = async (event) => {
+        const data = JSON.parse(event.body);
+        const { username, token }: { username: string, token: string } = data;
+
+        const auth = await Auth.verify(token);
+        if (auth.error) return Response.authFailed(ErrorTypes.AUTH_INVALID());
+
+        try {
+            const res = await this.getSimilarUsers(username);
+            const users = res.Items.map(u => ({ userId: u._id, username: u.username, avatar: u.avatar, count: u.postsCount }));
+
+            return Response.success({ users });
+        } catch (err) {
+            console.error(err);
+            if (err.custom) return Response.error(err);
+            return Response.error(ErrorTypes.UNKNOWN('Unable to get similar HashTags'));
+        }
+    }
+
     private getProfile = async (userId: string, fields: string) => {
         const params = {
             TableName: 'INS-USERS',
@@ -175,6 +194,26 @@ export class UsersController {
         };
 
         return await this.dynamo.update(params).promise();
+    }
+
+    private getSimilarUsers = async (username: string) => {
+        const params = {
+            TableName: 'INS-USERS',
+            FilterExpression: 'contains(#us, :u)',
+            ProjectionExpression: '#id, #u, #c, #a',
+            ExpressionAttributeNames: {
+                '#id': '_id',
+                '#u': 'username',
+                '#us': 'usernameSearch',
+                '#c': 'postsCount',
+                '#a': 'avatar'
+            },
+            ExpressionAttributeValues: {
+                ':u': username
+            }
+        };
+
+        return this.dynamo.scan(params).promise();
     }
 
 }

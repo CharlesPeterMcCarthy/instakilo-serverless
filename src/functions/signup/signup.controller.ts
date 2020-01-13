@@ -42,6 +42,7 @@ export class SignUpController {
 			Item: {
 				_id: sub,
 				username,
+				usernameSearch: username.toLowerCase(),
 				email,
 				confirmed,
 				firstName,

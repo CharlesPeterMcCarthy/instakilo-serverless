@@ -7,3 +7,4 @@ export const otherProfileHandler = controller.getOtherUserProfile;
 export const editProfileHandler = controller.editProfile;
 export const updateAvatarHandler = controller.updateAvatar;
 export const getPostsByUserHandler = controller.getPosts;
+export const getMatchingUsersHandler = controller.getMatchingUsers;
