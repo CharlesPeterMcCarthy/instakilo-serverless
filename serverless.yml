@@ -106,6 +106,13 @@ functions:
           path: /posts-by-location
           method: post
           cors: true
+  getPostsByUserHandler:
+    handler: src/functions/users/users.getPostsByUserHandler
+    events:
+      - http:
+          path: /posts-by-user
+          method: post
+          cors: true
 
   getMatchingHashTagsHandler:
     handler: src/functions/hashtags/hashtags.getMatchingHashTagsHandler

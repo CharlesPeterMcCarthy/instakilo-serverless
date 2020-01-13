@@ -22,7 +22,7 @@ export class UsersController {
             const user: UserBrief = await UserUtils.getBriefDetails(auth.sub);
             if (!user) return Response.notFound(ErrorTypes.USER_NOT_FOUND());
 
-            const res = await this.getProfile(auth.sub, '#id, username, avatar, firstName, lastName, dob, times.signedUpAt, email'); // Show email
+            const res = await this.getProfile(auth.sub, '#id, username, avatar, firstName, lastName, dob, times.signedUpAt, postsCount, email'); // Show email
             const profile = res.Item;
 
             if (!profile) return Response.error(ErrorTypes.USER_NOT_FOUND());
@@ -47,7 +47,7 @@ export class UsersController {
             const user: UserBrief = await UserUtils.getBriefDetails(auth.sub);
             if (!user) return Response.notFound(ErrorTypes.USER_NOT_FOUND());
 
-            const res = await this.getProfile(userId, '#id, username, avatar, firstName, lastName, dob, times.signedUpAt');
+            const res = await this.getProfile(userId, '#id, username, avatar, firstName, lastName, dob, times.signedUpAt, postsCount');
             const profile = res.Item;
 
             if (!profile) return Response.error(ErrorTypes.USER_NOT_FOUND());
@@ -95,6 +95,25 @@ export class UsersController {
             console.error(err);
             if (err.custom) return Response.error(err);
             return Response.error(ErrorTypes.UNKNOWN('Unable to update avatar'));
+        }
+    }
+
+    public getPosts = async (event) => {
+        const data = JSON.parse(event.body);
+        const { userId, token }: { userId: string, token: string } = data;
+
+        const auth = await Auth.verify(token);
+        if (auth.error) return Response.authFailed(ErrorTypes.AUTH_INVALID());
+
+        try {
+            const res = await this.getProfile(userId, '#id, username, posts');
+            const { _id, username, posts } = res.Item;
+
+            return Response.success({ posts, user: { _id, username } });
+        } catch (err) {
+            console.error(err);
+            if (err.custom) return Response.error(err);
+            return Response.error(ErrorTypes.UNKNOWN('Unable to get user posts'));
         }
     }
 
@@ -156,7 +175,6 @@ export class UsersController {
         };
 
         return await this.dynamo.update(params).promise();
-
     }
 
 }

@@ -50,7 +50,8 @@ export class SignUpController {
 				times: {
 					signedUpAt: now
 				},
-				posts: []
+				posts: [],
+				postsCount: 0
 			}
 		};
 

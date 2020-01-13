@@ -10,7 +10,7 @@ export default class UserUtils {
 
     static getBriefDetails = async (userId: string): Promise<UserBrief> => UserUtils.queryUser(userId, true);
 
-    static getPostIds = async (userId: string): Promise<string[]> => {
+    static getPosts = async (userId: string): Promise<Array<{ _id: string; imageURL: string }>> => {
         const params = {
             TableName: 'INS-USERS',
             Key: {

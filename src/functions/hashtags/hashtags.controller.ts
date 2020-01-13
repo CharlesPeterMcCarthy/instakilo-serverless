@@ -144,7 +144,7 @@ export class HashTagsController {
             Key: {
                 _tag: hashTag
             },
-            UpdateExpression: `REMOVE posts[${postIndex}], #c = #c + :c`,
+            UpdateExpression: `REMOVE posts[${postIndex}] SET #c = #c + :c`,
             ExpressionAttributeNames: {
                 '#c': 'count'
             },

@@ -29,7 +29,7 @@ export class PostsController {
             if (!user) return Response.notFound(ErrorTypes.USER_NOT_FOUND());
 
             const savedPost = await this.savePost(post, user);
-            await this.updateAddUserPosts(savedPost._id, user._id);
+            await this.updateAddUserPosts(savedPost._id, post.imageURL, user._id);
 
             const { locationName, placeData } = post.location;
             await this.hashTags.sort([], savedPost.hashTags, { _id: savedPost._id, imgURL: savedPost.imageURL });
@@ -123,7 +123,8 @@ export class PostsController {
         if (auth.error) return Response.authFailed(ErrorTypes.AUTH_INVALID());
 
         try {
-            const postIds: string[] = await UserUtils.getPostIds(auth.sub);
+            const basicPosts: Array<{ _id: string; imageURL: string }> = await UserUtils.getPosts(auth.sub);
+            const postIds = basicPosts.map(p => p._id);
             const res = await this.getPosts(postIds);
             const posts = res.Items;
 
@@ -179,15 +180,24 @@ export class PostsController {
         }
     }
 
-    private updateAddUserPosts = (postId: string, userId: string) => {
+    private updateAddUserPosts = (postId: string, imageURL: string, userId: string) => {
         const params = {
             TableName: 'INS-USERS',
             Key: {
                 _id: userId
             },
-            UpdateExpression: 'SET posts = list_append(posts, :p)',
+            UpdateExpression: 'SET posts = list_append(posts, :p), #pc = #pc + :pc',
             ExpressionAttributeValues: {
-                ':p': [ postId ]
+                ':p': [
+                    {
+                        _id: postId,
+                        imageURL
+                    }
+                ],
+                ':pc': 1
+            },
+            ExpressionAttributeNames: {
+                '#pc': 'postsCount'
             },
             ReturnValues: 'UPDATED_NEW'
         };
@@ -196,7 +206,7 @@ export class PostsController {
     }
 
     private updateRemoveUserPosts = async (postId: string, userId: string) => {
-        const posts = await UserUtils.getPostIds(userId);
+        const posts = await UserUtils.getPosts(userId);
         const postIndex = this.getPostIndex(posts, postId);
         if (postIndex < 0) return;
 
@@ -205,14 +215,20 @@ export class PostsController {
             Key: {
                 _id: userId
             },
-            UpdateExpression: `REMOVE posts[${postIndex}]`,
+            UpdateExpression: `REMOVE posts[${postIndex}] SET #pc = #pc + :pc`,
+            ExpressionAttributeValues: {
+                ':pc': -1
+            },
+            ExpressionAttributeNames: {
+                '#pc': 'postsCount'
+            },
             ReturnValues: 'UPDATED_NEW'
         };
 
         return this.dynamo.update(params).promise();
     }
 
-    private getPostIndex = (posts: string[], postId: string) => posts.indexOf(postId);
+    private getPostIndex = (posts: Array<{ _id: string; imageURL: string }>, postId: string) => posts.map(p => p._id).indexOf(postId);
 
     private deletePost = (postId, userId) => {
         const params = {
